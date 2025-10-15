@@ -1,7 +1,7 @@
 ---
 name: "\U0001F9E0 Spike / Research"
 about: Investigate or research a topic before implementation
-title: "[Spike]:"
+title: "[Server][Spike]:"
 labels: research, spike
 assignees: ''
 

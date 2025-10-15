@@ -1,7 +1,7 @@
 ---
 name: "\U0001F4D8 Documentation Update"
 about: Add, improve, or fix documentation
-title: "[Docs]: "
+title: "[Server][Docs]: "
 labels: documentation
 assignees: ''
 

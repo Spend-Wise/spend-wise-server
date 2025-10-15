@@ -1,7 +1,7 @@
 ---
 name: "\U0001F5C2️ Directory Structure Update"
 about: Propose or document changes to the repo structure
-title: "[Structure]: "
+title: "[Server][Structure]: "
 labels: refactor, structure
 assignees: ''
 
