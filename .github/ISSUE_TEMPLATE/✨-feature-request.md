@@ -14,18 +14,19 @@ Briefly describe the new feature or improvement.
 
 ---
 
-## 📖 Description
-Explain what this feature should do and why it is needed.
+## 📖 Story
+As a *role*
+I want *requirement*
+So that *reason*
 
 ---
 
 ## ✅ Acceptance Criteria
 List the conditions that must be met for this feature to be complete.
 
-- [ ] User can update profile photo  
-- [ ] Data saved to backend successfully  
-- [ ] Validation errors displayed correctly  
-
+- [ ] Given that *initial state of user flow*
+        When I *trigger action*
+        Then *expected result*
 ---
 
 ## 🔗 Dependencies / Impact
