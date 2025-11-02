@@ -3,32 +3,43 @@
 FastAPI server for the Spend Wise application.
 
 ## Features
-- Scratch root endpoint returning JSON alive message
+- Root endpoint returning JSON alive message
 - Ping endpoint for basic health check
 - Plain text scratch endpoint
 
 ## Project Structure
 ```
 app/
-  main.py        # FastAPI application instance and endpoints
-requirements.txt # Python dependencies
+  main.py                 # FastAPI app factory and primary endpoints
+  core/
+    config.py             # Pydantic BaseSettings for env-driven config
+    security.py           # Placeholder security helpers (JWT token stub)
+    logging_config.py     # Central logging setup function
+  api/
+    deps.py               # Dependency functions (e.g., get_settings)
+    v1/
+      router.py           # APIRouter for version 1 endpoints
+      endpoints/          # (future) individual endpoint modules
+  models/                 # (future) ORM / domain models
+  schemas/                # (future) Pydantic schemas
+  services/               # (future) business logic layer
+  db/                     # (future) database session utilities
+  utils/                  # (future) helper utilities
+requirements.txt          # Python dependencies
 tests/
-  test_root.py   # Basic pytest tests for endpoints
+  test_main.py            # Pytest tests for root endpoint
 ```
 
 ## Getting Started
-
 ### 1. Create and activate a virtual environment (recommended)
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 ```
-
 ### 2. Install dependencies
 ```bash
 pip install -r requirements.txt
 ```
-
 ### 3. Run the development server
 ```bash
 uvicorn app.main:app --reload --port 8000
