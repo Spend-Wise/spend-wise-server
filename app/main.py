@@ -1,8 +1,15 @@
 from fastapi import FastAPI
-from fastapi.responses import PlainTextResponse
 from datetime import datetime, timezone
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Spend Wise Server")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # Allow only localhost:5173 for development
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
+)
 
 # Capture application start time (UTC, timezone-aware) for uptime calculations
 START_TIME = datetime.now(timezone.utc)
