@@ -1,0 +1,32 @@
+# This is a GitHub Actions workflow file for running unit tests on push events.
+# Each line is explained for your learning.
+
+name: Unit Tests  # The name of the workflow as it will appear in the GitHub Actions UI
+
+on:  # This section defines the events that trigger the workflow
+  push:  # The workflow will run on every push
+    branches:  # Specify which branches to run on
+      - main  # Run on pushes to the main branch
+      - '**'  # Run on pushes to any branch (the double asterisks is a glob pattern for all branches)
+
+jobs:  # A workflow consists of one or more jobs
+  test:  # This is the name of the job
+    runs-on: ubuntu-latest  # The job will run on the latest version of Ubuntu runner provided by GitHub
+
+    steps:  # Each job consists of a sequence of steps
+      - name: Checkout code  # Step name shown in the Actions UI
+        uses: actions/checkout@v4  # This action checks out your repository code so the workflow can access it
+
+      - name: Set up Python  # Step name
+        uses: actions/setup-python@v5  # This action sets up a Python environment
+        with:
+          python-version: '3.13'  # Specify the Python version to use
+
+      - name: Install dependencies  # Step name
+        run: |
+          python -m pip install --upgrade pip  # Upgrade pip to the latest version
+          pip install -r requirements.txt  # Install dependencies from requirements.txt
+
+      - name: Run unit tests  # Step name
+        run: |
+          python -m pytest  # Run pytest as a module to execute all unit tests
