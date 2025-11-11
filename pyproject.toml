@@ -1,0 +1,42 @@
+[tool.ruff]
+# Set the maximum line length
+line-length = 100
+
+# Exclude common directories
+exclude = [
+    ".git",
+    "__pycache__",
+    ".venv",
+    "venv",
+    ".pytest_cache",
+    "build",
+    "dist",
+]
+
+[tool.ruff.format]
+# Use double quotes for strings
+quote-style = "double"
+# Use spaces for indentation
+indent-style = "space"
+# Respect magic trailing commas
+skip-magic-trailing-comma = false
+# Line ending style
+line-ending = "auto"
+
+[tool.ruff.lint]
+# Enable pycodestyle (E, W), pyflakes (F), and isort (I) rules
+select = ["E", "F", "I", "N", "W", "UP"]
+ignore = []
+
+[tool.ruff.lint.isort]
+# Use black-compatible import sorting
+known-first-party = ["app"]
+
+[tool.pytest.ini_options]
+# Add the project root to Python path so tests can import 'app'
+pythonpath = ["."]
+# Test discovery patterns
+testpaths = ["tests"]
+# Python files to discover tests
+python_files = ["test_*.py", "*_test.py"]
+

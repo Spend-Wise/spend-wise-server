@@ -1,0 +1,90 @@
+#!/bin/bash
+
+# Pre-commit hook to run linting and unit tests
+# This hook prevents commits if linting fails or unit tests fail
+
+set -e
+
+# Get the repository root directory
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+# Check if virtual environment exists and activate it if found
+if [ -d ".venv" ]; then
+    source .venv/bin/activate
+    echo "✓ Activated virtual environment (.venv)"
+elif [ -d "venv" ]; then
+    source venv/bin/activate
+    echo "✓ Activated virtual environment (venv)"
+fi
+
+# ============================================================================
+# LINTING CHECKS
+# ============================================================================
+echo "🔍 Running linting checks..."
+
+# Check if ruff is available
+if ! command -v ruff &> /dev/null; then
+    echo "❌ Error: ruff is not installed or not in PATH"
+    echo "Please install ruff: pip install ruff"
+    exit 1
+fi
+
+# Run ruff format check (check if code is formatted correctly)
+echo "  Checking code formatting in app/..."
+if ! ruff format --check app/; then
+    echo ""
+    echo "❌ Code formatting check failed! Commit aborted."
+    echo "Please run './run lint' to auto-fix formatting issues."
+    exit 1
+fi
+
+# Run ruff lint check
+echo "  Checking code quality in app/..."
+if ! ruff check app/; then
+    echo ""
+    echo "❌ Linting check failed! Commit aborted."
+    echo "Please run './run lint' to auto-fix linting issues."
+    exit 1
+fi
+
+echo "✅ All linting checks passed!"
+
+# ============================================================================
+# UNIT TESTS
+# ============================================================================
+echo ""
+echo "🧪 Running unit tests..."
+
+# Check if pytest is available
+if ! command -v pytest &> /dev/null; then
+    echo "❌ Error: pytest is not installed or not in PATH"
+    echo "Please install pytest: pip install pytest"
+    exit 1
+fi
+
+# Check if tests directory exists
+if [ ! -d "tests" ]; then
+    echo "⚠️  Warning: tests/ directory not found. Skipping tests."
+    exit 0
+fi
+
+# Run pytest
+# -v: verbose output
+# -x: stop on first failure
+# --tb=short: shorter traceback format
+# Note: pytest will automatically find tests/ directory via pyproject.toml config
+if pytest -v -x --tb=short; then
+    echo ""
+    echo "✅ All tests passed!"
+    echo ""
+    echo "✅ All checks passed! Proceeding with commit..."
+    exit 0
+else
+    echo ""
+    echo "❌ Tests failed! Commit aborted."
+    echo "Please fix the failing tests before committing."
+    exit 1
+fi
+
+

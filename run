@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Unified helper script for Spend Wise Server (extensionless variant).
-# Usage: ./run [setup|server|test|coverage|clean|help]
+# Usage: ./run [setup|server|test|coverage|clean|lint|help]
 
 set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -28,10 +28,64 @@ ensure_deps() {
   pip install -r "${REQ_FILE}" >/dev/null
 }
 
-cmd_setup() { ensure_venv; ensure_deps; log "Setup complete. Activate with: source .venv/bin/activate"; }
+setup_git_hooks() {
+  local GIT_HOOKS_DIR="${PROJECT_ROOT}/git_hooks"
+  local GIT_HOOKS_TARGET="${PROJECT_ROOT}/.git/hooks"
+  
+  if [[ ! -d "${GIT_HOOKS_DIR}" ]]; then
+    warn "git_hooks directory not found, skipping hook installation"
+    return
+  fi
+  
+  if [[ ! -d "${GIT_HOOKS_TARGET}" ]]; then
+    warn ".git/hooks directory not found, skipping hook installation"
+    return
+  fi
+  
+  log "Setting up git hooks..."
+  shopt -s nullglob
+  local hook_installed=0
+  for hook in "${GIT_HOOKS_DIR}"/*; do
+    if [[ -f "${hook}" ]] && [[ -x "${hook}" ]]; then
+      local hook_name=$(basename "${hook}")
+      cp "${hook}" "${GIT_HOOKS_TARGET}/${hook_name}"
+      chmod +x "${GIT_HOOKS_TARGET}/${hook_name}"
+      log "Installed git hook: ${hook_name}"
+      hook_installed=1
+    fi
+  done
+  shopt -u nullglob
+  
+  if [[ ${hook_installed} -eq 0 ]]; then
+    warn "No executable hook files found in git_hooks directory"
+  fi
+}
+
+cmd_setup() { 
+  ensure_venv
+  ensure_deps
+  setup_git_hooks
+  log "Setup complete. Activate with: source .venv/bin/activate"
+}
 cmd_server() { ensure_venv; ensure_deps; log "Starting FastAPI server (reload enabled)"; activate_venv; exec ${UVICORN_CMD}; }
 cmd_test() { ensure_venv; ensure_deps; activate_venv; log "Running pytest"; python -m pytest -q; }
 cmd_coverage() { ensure_venv; ensure_deps; activate_venv; if ! python -c "import pytest_cov" 2>/dev/null; then warn "pytest-cov not installed; installing now"; pip install pytest-cov >/dev/null; fi; log "Running tests with coverage"; python -m pytest --cov=app --cov-report=term-missing; }
+cmd_lint() { 
+  # Activate venv if it exists (ruff might be installed there)
+  if [[ -d "${VENV_DIR}" ]]; then
+    activate_venv
+  fi
+  if ! command -v ruff &>/dev/null; then
+    err "ruff is not installed. Please run: ./run setup (or pip install ruff)"
+    exit 1
+  fi
+  log "Running ruff to fix linting issues in app/..."
+  log "Formatting code..."
+  ruff format app/
+  log "Fixing linting issues..."
+  ruff check --fix app/
+  log "Linting complete! All issues have been auto-fixed."
+}
 cmd_clean() { log "Removing __pycache__ and .pytest_cache"; find "${PROJECT_ROOT}" -type d -name "__pycache__" -exec rm -rf {} + || true; rm -rf "${PROJECT_ROOT}/.pytest_cache" || true; log "Clean complete"; }
 cmd_help() { cat <<EOF
 Spend Wise helper script (extensionless)
@@ -41,6 +95,7 @@ Commands:
   server     Run FastAPI dev server (uvicorn --reload)
   test       Run pytest quietly
   coverage   Run pytest with coverage report
+  lint       Auto-fix linting and formatting issues (ruff)
   clean      Remove cache directories
   help       Show this help
 
@@ -48,9 +103,10 @@ Examples:
   ./run setup
   ./run server
   ./run test
+  ./run lint
 EOF
 }
 
-main() { cmd="${1:-help}"; case "${cmd}" in setup) cmd_setup ;; server) cmd_server ;; test) cmd_test ;; coverage) cmd_coverage ;; clean) cmd_clean ;; help|--help|-h) cmd_help ;; *) err "Unknown command: ${cmd}"; cmd_help; exit 1 ;; esac; }
+main() { cmd="${1:-help}"; case "${cmd}" in setup) cmd_setup ;; server) cmd_server ;; test) cmd_test ;; coverage) cmd_coverage ;; lint) cmd_lint ;; clean) cmd_clean ;; help|--help|-h) cmd_help ;; *) err "Unknown command: ${cmd}"; cmd_help; exit 1 ;; esac; }
 
 main "$@"
