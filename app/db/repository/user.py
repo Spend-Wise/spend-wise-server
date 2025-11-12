@@ -1,11 +1,11 @@
 import uuid
 
-from ..schema import UserCreate, UserRead
+from ...schemas.user import UserCredentials, UserRead
 
 users = []
 
 
-def save_user(user_create: UserCreate) -> UserRead:
+def save_user(user_create: UserCredentials) -> UserRead:
     user = UserRead(
         id=str(uuid.uuid4()), username=user_create.username, password=user_create.password
     )
