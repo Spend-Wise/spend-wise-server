@@ -6,7 +6,7 @@ class UserCredentials(BaseModel):
     password: str
 
 
-class UserRead(BaseModel):
+class UserData(BaseModel):
     id: str
     username: str
     password: str
