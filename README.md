@@ -77,8 +77,7 @@ See [docs/LINTING_COMPARISON.md](docs/LINTING_COMPARISON.md) for a detailed comp
 
 ## Git Hooks
 
-### Pre-commit Hook
-A pre-commit hook is configured to automatically run **linting checks** and **unit tests** before each commit. This ensures that no broken or improperly formatted code gets committed to the repository.
+Git hooks are automatically set up when you run `./run setup`. This will install the pre-commit hook to your local `.git/hooks` directory. A pre-commit hook is configured to automatically run **linting checks** and **unit tests** before each commit. This ensures that no broken or improperly formatted code gets committed to the repository.
 
 **How it works:**
 1. **Linting checks** (runs first):
