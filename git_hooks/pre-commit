@@ -74,7 +74,7 @@ fi
 # -x: stop on first failure
 # --tb=short: shorter traceback format
 # Note: pytest will automatically find tests/ directory via pyproject.toml config
-if pytest -v -x --tb=short; then
+if python -m pytest -q; then
     echo ""
     echo "✅ All tests passed!"
     echo ""

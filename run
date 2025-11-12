@@ -68,7 +68,7 @@ cmd_setup() {
   log "Setup complete. Activate with: source .venv/bin/activate"
 }
 cmd_server() { ensure_venv; ensure_deps; log "Starting FastAPI server (reload enabled)"; activate_venv; exec ${UVICORN_CMD}; }
-cmd_test() { ensure_venv; ensure_deps; activate_venv; log "Running pytest"; python -m pytest -q; }
+cmd_test() { ensure_venv; ensure_deps; activate_venv; log "Running pytest"; pytest -v -x --tb=short; }
 cmd_coverage() { ensure_venv; ensure_deps; activate_venv; if ! python -c "import pytest_cov" 2>/dev/null; then warn "pytest-cov not installed; installing now"; pip install pytest-cov >/dev/null; fi; log "Running tests with coverage"; python -m pytest --cov=app --cov-report=term-missing; }
 cmd_lint() { 
   # Activate venv if it exists (ruff might be installed there)
