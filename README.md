@@ -32,17 +32,14 @@ tests/
 
 ## Getting Started
 ### 1. Create and activate a virtual environment (recommended)
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
+## &
 ### 2. Install dependencies
 ```bash
-pip install -r requirements.txt
+./run setup
 ```
 ### 3. Run the development server
 ```bash
-uvicorn app.main:app --reload --port 8000
+./run server
 ```
 Visit: http://127.0.0.1:8000
 
@@ -51,7 +48,7 @@ ReDoc docs: http://127.0.0.1:8000/redoc
 
 ### 4. Run tests
 ```bash
-pytest -q
+./run test
 ```
 
 ### 5. Run linting and auto-fix issues
