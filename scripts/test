@@ -1,9 +1,21 @@
+#!/usr/bin/env bash
+
 create_user() {
   local username="sampleuser"
   local password="hashedpassword"
 
   log "Creating user: $username"
   curl -v -X POST "http://localhost:8000/auth/signup" \
+    -H "Content-Type: application/json" \
+    -d "{\"username\": \"$username\", \"password\": \"$password\"}"
+}
+
+login_user() {
+  local username="sampleuser"
+  local password="hashedpassword"
+
+  log "Logging in user: $username"
+  curl -v -X POST "http://localhost:8000/auth/login" \
     -H "Content-Type: application/json" \
     -d "{\"username\": \"$username\", \"password\": \"$password\"}"
 }
@@ -23,6 +35,9 @@ main() {
   case "$1" in
     create_user)
       create_user
+      ;;
+    login_user)
+      login_user
       ;;
     add_expense)
       # Replace with actual user_id if needed
