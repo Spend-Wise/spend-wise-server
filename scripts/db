@@ -1,0 +1,227 @@
+#!/usr/bin/env bash
+
+CONTAINER_NAME="spend-wise-postgres"
+
+log() {
+  echo "[$(date +'%Y-%m-%d %H:%M:%S')] $*"
+}
+
+healthcheck() {
+  local wait_for_healthy=false
+  local verbose=false
+  
+  # Parse flags
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --wait|-w)
+        wait_for_healthy=true
+        shift
+        ;;
+      --verbose|-v)
+        verbose=true
+        shift
+        ;;
+      *)
+        # Unknown option, ignore or could show error
+        shift
+        ;;
+    esac
+  done
+  
+  log "Checking health status of $CONTAINER_NAME..."
+  
+  # Check if container exists
+  if ! docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+    echo "❌ Container '$CONTAINER_NAME' not found"
+    echo "   Start it with: docker-compose up -d"
+    exit 1
+  fi
+
+  # Check if container is running
+  if ! docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+    echo "❌ Container '$CONTAINER_NAME' is not running"
+    echo "   Start it with: docker-compose up -d"
+    exit 1
+  fi
+
+  # Get health status
+  local status=$(docker inspect --format='{{.State.Health.Status}}' "$CONTAINER_NAME" 2>/dev/null)
+  
+  if [ -z "$status" ]; then
+    echo "⚠️  Health check not configured for this container"
+    echo "   Container is running but health check is not available"
+    exit 0
+  fi
+
+  # Always show the status value
+  echo "Status: $status"
+  echo ""
+
+  case "$status" in
+    healthy)
+      echo "✅ Container is healthy"
+      echo "   PostgreSQL is ready to accept connections"
+      
+      # Show health check details
+      local failing_streak=$(docker inspect --format='{{.State.Health.FailingStreak}}' "$CONTAINER_NAME" 2>/dev/null)
+      if [ -n "$failing_streak" ] && [ "$failing_streak" != "0" ]; then
+        echo "   Warning: $failing_streak consecutive failed health checks"
+      fi
+      ;;
+    starting)
+      echo "⏳ Container is starting..."
+      echo "   Health check is in progress, wait a few seconds"
+      
+      # Show how many checks have been performed
+      local health_logs=$(docker inspect --format='{{len .State.Health.Log}}' "$CONTAINER_NAME" 2>/dev/null)
+      if [ -n "$health_logs" ] && [ "$health_logs" != "0" ]; then
+        echo "   Health checks performed: $health_logs"
+      fi
+      
+      ;;
+    unhealthy)
+      echo "❌ Container is unhealthy"
+      echo "   PostgreSQL may not be ready or there's an issue"
+      
+      # Show failing streak
+      local failing_streak=$(docker inspect --format='{{.State.Health.FailingStreak}}' "$CONTAINER_NAME" 2>/dev/null)
+      if [ -n "$failing_streak" ]; then
+        echo "   Consecutive failed checks: $failing_streak"
+      fi
+      
+      # Show last error
+      local last_error=$(docker inspect --format='{{range .State.Health.Log}}{{if eq .ExitCode 1}}{{.Output}}{{end}}{{end}}' "$CONTAINER_NAME" 2>/dev/null | tail -1)
+      if [ -n "$last_error" ]; then
+        echo "   Last error: $last_error"
+      fi
+      
+      echo ""
+      echo "Check logs with: docker logs $CONTAINER_NAME"
+      exit 1
+      ;;
+    *)
+      echo "❓ Unknown health status: $status"
+      ;;
+  esac
+
+  # Wait for healthy status if requested
+  if [ "$wait_for_healthy" = true ] && [ "$status" != "healthy" ]; then
+    echo ""
+    echo "Waiting for container to become healthy..."
+    local max_wait=60  # Maximum wait time in seconds
+    local waited=0
+    local check_interval=2
+    
+    while [ $waited -lt $max_wait ]; do
+      sleep $check_interval
+      waited=$((waited + check_interval))
+      status=$(docker inspect --format='{{.State.Health.Status}}' "$CONTAINER_NAME" 2>/dev/null)
+      
+      if [ "$status" = "healthy" ]; then
+        echo ""
+        echo "✅ Container is now healthy!"
+        echo "   Waited $waited seconds"
+        return 0
+      elif [ "$status" = "unhealthy" ]; then
+        echo ""
+        echo "❌ Container became unhealthy while waiting"
+        exit 1
+      fi
+      
+      printf "."
+    done
+    
+    echo ""
+    echo "⏱️  Timeout: Container did not become healthy within $max_wait seconds"
+    exit 1
+  fi
+
+  # Show detailed health information if verbose
+  if [ "$verbose" = true ]; then
+    echo ""
+    echo "Detailed health information:"
+    docker inspect "$CONTAINER_NAME" | grep -A 20 '"Health"' | head -25
+  fi
+}
+
+status() {
+  log "Checking status of $CONTAINER_NAME..."
+  docker-compose ps postgres
+}
+
+logs() {
+  log "Showing logs for $CONTAINER_NAME..."
+  docker logs -f "$CONTAINER_NAME"
+}
+
+start() {
+  log "Starting PostgreSQL container..."
+  docker-compose up -d postgres
+  echo "Waiting for container to be healthy..."
+  sleep 2
+  healthcheck
+}
+
+stop() {
+  log "Stopping PostgreSQL container..."
+  docker-compose stop postgres
+  echo "✅ Container stopped"
+}
+
+restart() {
+  log "Restarting PostgreSQL container..."
+  docker-compose restart postgres
+  echo "Waiting for container to be healthy..."
+  sleep 2
+  healthcheck
+}
+
+main() {
+  case "$1" in
+    healthcheck|health)
+      shift  # Remove the command name
+      healthcheck "$@"
+      ;;
+    status)
+      status
+      ;;
+    logs)
+      logs
+      ;;
+    start)
+      start
+      ;;
+    stop)
+      stop
+      ;;
+    restart)
+      restart
+      ;;
+    *)
+      echo "Usage: $0 {healthcheck|status|logs|start|stop|restart}"
+      echo ""
+      echo "Commands:"
+      echo "  healthcheck, health  Check the health status of the database container"
+      echo "  status              Show container status using docker-compose"
+      echo "  logs                Show and follow container logs"
+      echo "  start               Start the database container"
+      echo "  stop                Stop the database container"
+      echo "  restart             Restart the database container"
+      echo ""
+      echo "Healthcheck Options:"
+      echo "  --wait, -w          Wait until container becomes healthy (max 60s)"
+      echo "  --verbose, -v        Show detailed health information"
+      echo ""
+      echo "Examples:"
+      echo "  $0 healthcheck           # Quick health check"
+      echo "  $0 healthcheck --wait    # Wait until healthy"
+      echo "  $0 healthcheck --verbose # Detailed health information"
+      exit 1
+      ;;
+  esac
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
+fi
+

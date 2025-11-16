@@ -107,6 +107,42 @@ git commit --no-verify
 
 `GET /text` -> `Spend Wise server is alive`
 
+## Database Management
+
+The project includes a PostgreSQL database running in Docker. Use the `./scripts/db` command to manage the database container.
+
+### Available Commands
+
+```bash
+# Check database health status
+./scripts/db healthcheck
+
+# Check database health with detailed information
+./scripts/db healthcheck --verbose
+
+# Show container status
+./scripts/db status
+
+# View database logs (follow mode)
+./scripts/db logs
+
+# Start the database container
+./scripts/db start
+
+# Stop the database container
+./scripts/db stop
+
+# Restart the database container
+./scripts/db restart
+```
+
+### Health Check Status
+
+The healthcheck command returns one of these statuses:
+- ✅ **healthy** - Database is ready to accept connections
+- ⏳ **starting** - Database is still initializing
+- ❌ **unhealthy** - Database has issues (check logs)
+
 ## Next Steps
 - Add models for users, groups, expenses
 - Integrate database (e.g., PostgreSQL with SQLModel or SQLAlchemy)
