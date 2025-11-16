@@ -1,0 +1,41 @@
+create_user() {
+  local username="sampleuser"
+  local password="hashedpassword"
+
+  log "Creating user: $username"
+  curl -v -X POST "http://localhost:8000/domain/auth/signup" \
+    -H "Content-Type: application/json" \
+    -d "{\"username\": \"$username\", \"password\": \"$password\"}"
+}
+
+add_expense() {
+  local user_id="$1"
+  local amount="100.00"
+  local description="Sample Expense"
+
+  log "Adding expense for user_id: $user_id, amount: $amount, description: $description"
+  curl -v -X POST "http://localhost:8000/expense" \
+    -H "Content-Type: application/json" \
+    -d "{\"amount\": \"$amount\", \"description\": \"$description\", \"date\": \"01-01-2024\", \"user_id\": \"$user_id\"}"
+}
+
+main() {
+  case "$1" in
+    create_user)
+      create_user
+      ;;
+    add_expense)
+      # Replace with actual user_id if needed
+      local user_id="$2"
+      add_expense "$user_id"
+      ;;
+    *)
+      echo "Usage: $0 {create_user|add_expense}"
+      exit 1
+      ;;
+  esac
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
+fi
