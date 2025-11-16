@@ -3,7 +3,7 @@ create_user() {
   local password="hashedpassword"
 
   log "Creating user: $username"
-  curl -v -X POST "http://localhost:8000/domain/auth/signup" \
+  curl -v -X POST "http://localhost:8000/auth/signup" \
     -H "Content-Type: application/json" \
     -d "{\"username\": \"$username\", \"password\": \"$password\"}"
 }
