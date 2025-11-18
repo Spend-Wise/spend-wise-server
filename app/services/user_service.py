@@ -1,4 +1,5 @@
 from ..db.repository.user import get_user_by_name, save_user
+from ..exceptions import UsernameAlreadyExistsError, UserNotFoundError
 from ..schemas.user import UserCredentials, UserInfo
 
 
@@ -10,6 +11,10 @@ class UserService:
         if username == "" or password == "":
             raise ValueError("username and password are required")
 
+        existing_user = get_user_by_name(username)
+        if existing_user:
+            raise UsernameAlreadyExistsError(username)
+
         user_info = save_user(credentials)
 
         return user_info
@@ -18,7 +23,7 @@ class UserService:
     def authenticate_user(credentials: UserCredentials) -> UserInfo | None:
         user = get_user_by_name(credentials.username)
         if not user:
-            return None
+            raise UserNotFoundError(f"No user found with username: {credentials.username}")
         if user.password != credentials.password:
             return None
 

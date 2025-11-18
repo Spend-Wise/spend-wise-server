@@ -1,16 +1,16 @@
 import uuid
 
-from ...schemas.user import UserCredentials, UserData
+from ...schemas.user import UserCredentials, UserData, UserInfo
 
 users: list[UserData] = []
 
 
-def save_user(user_create: UserCredentials) -> UserData:
+def save_user(user_create: UserCredentials) -> UserInfo:
     user = UserData(
         id=str(uuid.uuid4()), username=user_create.username, password=user_create.password
     )
     users.append(user)
-    return user
+    return UserInfo(id=user.id, username=user.username)
 
 
 def get_user_by_id(user_id: str) -> UserData | None:

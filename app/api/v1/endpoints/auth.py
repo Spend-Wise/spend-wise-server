@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 
+from ....exceptions import SpendWiseError
 from ....schemas.user import UserCredentials, UserInfo
 from ....services.user_service import UserService
 
@@ -11,8 +12,8 @@ async def signup(credentials: UserCredentials) -> UserInfo:
     """Register a new user."""
     try:
         return UserService.create_user(credentials)
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except SpendWiseError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.to_detail())
 
 
 @router.post("/auth/login", response_model=UserInfo)
