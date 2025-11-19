@@ -1,5 +1,6 @@
 from ..db.repository.user import get_user_by_name, save_user
-from ..exceptions import UsernameAlreadyExistsError, UserNotFoundError
+from ..exceptions.auth_exceptions import InvalidPasswordError, UsernameAlreadyExistsError
+from ..exceptions.spend_wise_exceptions import UserNotFoundError
 from ..schemas.user import UserCredentials, UserInfo
 
 
@@ -25,6 +26,6 @@ class UserService:
         if not user:
             raise UserNotFoundError(f"No user found with username: {credentials.username}")
         if user.password != credentials.password:
-            return None
+            raise InvalidPasswordError(user.password)
 
         return UserInfo(id=user.id, username=user.username)

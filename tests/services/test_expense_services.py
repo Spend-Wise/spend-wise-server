@@ -43,5 +43,5 @@ def test_save_expense_with_invalid_user_id(expense_factory, expense_repository_m
     with pytest.raises(UserNotFoundError) as exc:
         ExpenseServices.save_expense(expense_data)
     assert exc.type == UserNotFoundError
-    assert str(exc.value) == f"User with id {expense_data.user_id} not found"
+    assert str(exc.value) == "User with provided username is not found"
     expense_repository_mock.assert_not_called()
